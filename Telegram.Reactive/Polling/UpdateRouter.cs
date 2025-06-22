@@ -101,36 +101,21 @@ namespace Telegram.Reactive.Polling
         /// <returns>A task representing the asynchronous update handling operation.</returns>
         public virtual Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            //*
-            IEnumerable<DescribedHandlerInfo> handlers = HandlersProvider.GetHandlers(this, botClient, update);
-            //*/
-
-            /*
-            // Getting hundlers in update awaiting pool
-            IEnumerable<DescribedHandlerInfo> handlers =
-                AwaitingProvider.GetHandlers(this, botClient, update)
-                .Concat(HandlersProvider.GetHandlers(this, botClient, update));
-            */
-
-            /*
-            IEnumerable<DescribedHandlerInfo> handlers = AwaitingProvider.GetHandlers(this, botClient, update);
-            if (handlers.Any())
-            {
-                // Checking if awaiting handlers should be handled alongside with regular
-                if (!Options.RouteAwaitingHandlerSeparateFromRegular)
-                    handlers = handlers.Concat(HandlersProvider.GetHandlers(this, botClient, update)); // combining awaiting handlers with regelar
-            }
-            else
-            {
-                handlers = HandlersProvider.GetHandlers(this, botClient, update);
-            }
-            //*/
-
-            // Enqueueing handlers for execution
-            foreach (DescribedHandlerInfo handler in handlers)
+            // Queuing handlers for execution
+            foreach (DescribedHandlerInfo handler in GetHandlers(botClient, update, cancellationToken))
                 HandlersPool.Enqueue(handler);
 
             return Task.CompletedTask;
+        }
+
+        private IEnumerable<DescribedHandlerInfo> GetHandlers(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        {
+            // Getting handlers in update awaiting pool
+            IEnumerable<DescribedHandlerInfo> handlers = AwaitingProvider.GetHandlers(this, botClient, update);
+            if (handlers.Any() && Options.ExclusiveAwaitingHandlerRouting)
+                return handlers;
+
+            return handlers.Concat(HandlersProvider.GetHandlers(this, botClient, update));
         }
     }
 }

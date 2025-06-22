@@ -19,7 +19,7 @@
         /// <summary>
         /// Gets or sets a value indicating whether awaiting handlers should be routed separately from regular handlers.
         /// </summary>
-        public bool RouteAwaitingHandlerSeparateFromRegular { get; set; }
+        public bool ExclusiveAwaitingHandlerRouting { get; set; }
 
         /// <summary>
         /// Gets or sets the global cancellation token for all bot operations.

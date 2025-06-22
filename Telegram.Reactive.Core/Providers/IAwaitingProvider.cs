@@ -2,6 +2,9 @@
 
 namespace Telegram.Reactive.Core.Providers
 {
+    /// <summary>
+    /// Provider for managing awaiting handlers that can wait for specific update types.
+    /// </summary>
     public interface IAwaitingProvider : IHandlersProvider
     {
         /// <summary>
