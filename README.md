@@ -1,6 +1,6 @@
 # Telegram.Reactive
 
-![Telegram.Reactive Banner](https://raw.githubusercontent.com/your-repo/your-banner-path/banner.png)
+![Telegram.Reactive Banner](https://github.com/Rikitav/Telegram.Reactive/blob/master/resources%2Ftgr-banner.png)
 
 > **A modern reactive framework for Telegram bots in C# with aspect-oriented design, mediator-based dispatching, and flexible architecture.**
 
