@@ -1,8 +1,8 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Reactive.Core.Components.Handlers;
-using Telegram.Reactive.Core.Descriptors;
-using Telegram.Reactive.Core.Providers;
+using Telegram.Reactive.Handlers.Components;
+using Telegram.Reactive.MadiatorCore;
+using Telegram.Reactive.MadiatorCore.Descriptors;
 
 namespace Telegram.Reactive.Handlers.Building
 {
@@ -51,7 +51,7 @@ namespace Telegram.Reactive.Handlers.Building
         /// <param name="container">The handler container (unused).</param>
         /// <param name="cancellation">The cancellation token (unused).</param>
         /// <returns>A completed task.</returns>
-        protected override Task Execute(IHandlerContainer container, CancellationToken cancellation)
+        protected override Task ExecuteInternal(IHandlerContainer container, CancellationToken cancellation)
         {
             ResetEvent.Set();
             return Task.CompletedTask;

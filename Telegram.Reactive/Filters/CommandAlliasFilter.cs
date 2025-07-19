@@ -1,5 +1,5 @@
 ﻿using Telegram.Bot.Types;
-using Telegram.Reactive.Core.Components.Filters;
+using Telegram.Reactive.Filters.Components;
 using Telegram.Reactive.Handlers;
 
 namespace Telegram.Reactive.Filters

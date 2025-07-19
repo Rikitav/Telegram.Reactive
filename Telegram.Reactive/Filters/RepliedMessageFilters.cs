@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Reactive.Core.Components.Filters;
+using Telegram.Reactive.Filters.Components;
 
 namespace Telegram.Reactive.Filters
 {
@@ -347,7 +347,7 @@ namespace Telegram.Reactive.Filters
                 return false;
 
             FoundEntities = context.Input.Entities.Where(entity => FilterEntity(context.Input.Text, entity)).ToArray();
-            return FoundEntities.Any();
+            return FoundEntities.Length != 0;
         }
 
         /// <summary>

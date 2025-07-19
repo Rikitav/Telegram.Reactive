@@ -1,5 +1,5 @@
 ﻿using System.Text.RegularExpressions;
-using Telegram.Reactive.Core.Components.Filters;
+using Telegram.Reactive.Filters.Components;
 
 namespace Telegram.Reactive.Filters
 {
@@ -50,6 +50,7 @@ namespace Telegram.Reactive.Filters
             string? text = getString.Invoke(context.Input);
             if (string.IsNullOrEmpty(text))
                 return false;
+
             Matches = regex.Matches(text);
             return Matches.Count > 0;
         }

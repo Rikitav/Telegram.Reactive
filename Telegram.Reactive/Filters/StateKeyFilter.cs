@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types;
-using Telegram.Reactive.Core.Components.Filters;
-using Telegram.Reactive.Core.Components.StateKeeping;
+using Telegram.Reactive.Filters.Components;
+using Telegram.Reactive.StateKeeping.Components;
 
 namespace Telegram.Reactive.Filters
 {
@@ -12,6 +12,7 @@ namespace Telegram.Reactive.Filters
     {
         private readonly IStateKeyResolver<TKey> KeyResolver;
         private readonly TKey TargetKey;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="StateKeyFilter{TKey}"/> class.
         /// </summary>
@@ -22,6 +23,7 @@ namespace Telegram.Reactive.Filters
             KeyResolver = keyResolver;
             TargetKey = targetKey;
         }
+
         /// <inheritdoc/>
         public override bool CanPass(FilterExecutionContext<Update> context)
             => KeyResolver.ResolveKey(context.Input).Equals(TargetKey);

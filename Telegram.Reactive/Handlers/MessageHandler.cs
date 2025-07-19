@@ -3,7 +3,8 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Reactive.Attributes;
-using Telegram.Reactive.Core.Components.Filters;
+using Telegram.Reactive.Filters.Components;
+using Telegram.Reactive.Handlers.Components;
 
 namespace Telegram.Reactive.Handlers
 {
@@ -56,7 +57,7 @@ namespace Telegram.Reactive.Handlers
             string? messageEffectId = null,
             string? businessConnectionId = null,
             bool allowPaidBroadcast = false,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
             => await Client.SendMessage(
                 Input.Chat, text, parseMode, Input,
                 replyMarkup, linkPreviewOptions,
@@ -95,7 +96,7 @@ namespace Telegram.Reactive.Handlers
             string? messageEffectId = null,
             string? businessConnectionId = null,
             bool allowPaidBroadcast = false,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
             => await Client.SendMessage(
                 Input.Chat, text, parseMode, replyParameters,
                 replyMarkup, linkPreviewOptions,
@@ -139,7 +140,7 @@ namespace Telegram.Reactive.Handlers
             string? messageEffectId = null,
             string? businessConnectionId = null,
             bool allowPaidBroadcast = false,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
             => await Client.SendMessage(
                 Input.Chat, text, parseMode, Input,
                 replyMarkup, linkPreviewOptions,
@@ -178,7 +179,7 @@ namespace Telegram.Reactive.Handlers
             string? messageEffectId = null,
             string? businessConnectionId = null,
             bool allowPaidBroadcast = false,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
             => await Client.SendMessage(
                 Input.Chat, text, parseMode, replyParameters,
                 replyMarkup, linkPreviewOptions,

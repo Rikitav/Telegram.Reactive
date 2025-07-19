@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
-using Telegram.Reactive.Core.Configuration;
-using Telegram.Reactive.Core.Descriptors;
-using Telegram.Reactive.Core.Polling;
+using Telegram.Reactive.Configuration;
+using Telegram.Reactive.MadiatorCore;
+using Telegram.Reactive.MadiatorCore.Descriptors;
 
 namespace Telegram.Reactive.Polling
 {

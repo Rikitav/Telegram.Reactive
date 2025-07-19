@@ -1,0 +1,105 @@
+﻿using Telegram.Bot.Types;
+using Telegram.Reactive.Annotations.StateKeeping;
+using Telegram.Reactive.Filters.Components;
+using Telegram.Reactive.StateKeeping.Components;
+
+namespace Telegram.Reactive.Handlers.Building.Components
+{
+    /// <summary>
+    /// Defines builder actions for configuring handler builders.
+    /// </summary>
+    /// <typeparam name="TBuilder">The type of the handler builder.</typeparam>
+    public interface IHandlerBuilderActions<TBuilder> where TBuilder : HandlerBuilderBase
+    {
+        /// <summary>
+        /// Sets the update validating action for the handler.
+        /// </summary>
+        /// <param name="validateAction">The <see cref="UpdateValidateAction"/> to use.</param>
+        /// <returns>The builder instance.</returns>
+        public TBuilder SetUpdateValidating(UpdateValidateAction validateAction);
+
+        /// <summary>
+        /// Sets the concurrency level for the handler.
+        /// </summary>
+        /// <param name="concurrency">The concurrency value.</param>
+        /// <returns>The builder instance.</returns>
+        public TBuilder SetConcurreny(int concurrency);
+
+        /// <summary>
+        /// Sets the priority for the handler.
+        /// </summary>
+        /// <param name="priority">The priority value.</param>
+        /// <returns>The builder instance.</returns>
+        public TBuilder SetPriority(int priority);
+
+        /// <summary>
+        /// Sets both concurrency and priority for the handler.
+        /// </summary>
+        /// <param name="concurrency">The concurrency value.</param>
+        /// <param name="priority">The priority value.</param>
+        /// <returns>The builder instance.</returns>
+        public TBuilder SetIndexer(int concurrency, int priority);
+
+        /// <summary>
+        /// Adds a filter to the handler.
+        /// </summary>
+        /// <param name="filter">The <see cref="IFilter{Update}"/> to add.</param>
+        /// <returns>The builder instance.</returns>
+        public TBuilder AddFilter(IFilter<Update> filter);
+
+        /// <summary>
+        /// Adds multiple filters to the handler.
+        /// </summary>
+        /// <param name="filters">The filters to add.</param>
+        /// <returns>The builder instance.</returns>
+        public TBuilder AddFilters(params IFilter<Update>[] filters);
+
+        /// <summary>
+        /// Sets a state keeper for the handler using a specific state and key resolver.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <typeparam name="TState">The type of the state.</typeparam>
+        /// <typeparam name="TKeeper">The type of the state keeper.</typeparam>
+        /// <param name="myState">The state value.</param>
+        /// <param name="keyResolver">The key resolver.</param>
+        /// <returns>The builder instance.</returns>
+        public TBuilder SetStateKeeper<TKey, TState, TKeeper>(TState myState, IStateKeyResolver<TKey> keyResolver)
+            where TKey : notnull
+            where TState : IEquatable<TState>
+            where TKeeper : StateKeeperBase<TKey, TState>, new();
+
+        /// <summary>
+        /// Sets a state keeper for the handler using a special state and key resolver.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <typeparam name="TState">The type of the state.</typeparam>
+        /// <typeparam name="TKeeper">The type of the state keeper.</typeparam>
+        /// <param name="specialState">The special state value.</param>
+        /// <param name="keyResolver">The key resolver.</param>
+        /// <returns>The builder instance.</returns>
+        public TBuilder SetStateKeeper<TKey, TState, TKeeper>(SpecialState specialState, IStateKeyResolver<TKey> keyResolver)
+            where TKey : notnull
+            where TState : IEquatable<TState>
+            where TKeeper : StateKeeperBase<TKey, TState>, new();
+
+        /// <summary>
+        /// Adds a targeted filter for a specific filter target type.
+        /// </summary>
+        /// <typeparam name="TFilterTarget">The type of the filter target.</typeparam>
+        /// <param name="getFilterringTarget">Function to get the filter target from an update.</param>
+        /// <param name="filter">The filter to add.</param>
+        /// <returns>The builder instance.</returns>
+        public TBuilder AddTargetedFilter<TFilterTarget>(Func<Update, TFilterTarget?> getFilterringTarget, IFilter<TFilterTarget> filter)
+            where TFilterTarget : class;
+
+        /// <summary>
+        /// Adds multiple targeted filters for a specific filter target type.
+        /// </summary>
+        /// <typeparam name="TFilterTarget">The type of the filter target.</typeparam>
+        /// <param name="getFilterringTarget">Function to get the filter target from an update.</param>
+        /// <param name="filters">The filters to add.</param>
+        /// <returns>The builder instance.</returns>
+        public TBuilder AddTargetedFilters<TFilterTarget>(Func<Update, TFilterTarget?> getFilterringTarget, params IFilter<TFilterTarget>[] filters)
+            where TFilterTarget : class;
+    }
+}

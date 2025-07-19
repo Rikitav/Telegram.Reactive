@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections;
 
 namespace Telegram.Reactive.Generators
 {
@@ -39,15 +38,6 @@ namespace Telegram.Reactive.Generators
             return Cast(symbol.BaseType, className);
         }
 
-        public static IEnumerable<TResult> WhereCast<TResult>(this IEnumerable source)
-        {
-            foreach (object value in source)
-            {
-                if (value is TResult result)
-                    yield return result;
-            }
-        }
-
         public static CompilationUnitSyntax FindCompilationUnitSyntax(this SyntaxNode syntax)
         {
             while (syntax is not CompilationUnitSyntax)
@@ -56,18 +46,15 @@ namespace Telegram.Reactive.Generators
             return (CompilationUnitSyntax)syntax;
         }
 
-        public static IList<TValue> UnionAdd<TValue>(this IList<TValue> source, IEnumerable<TValue> toUnion, IEqualityComparer<TValue> equalityComparer)
+        public static IList<TValue> UnionAdd<TValue>(this IList<TValue> source, IEnumerable<TValue> toUnion)
         {
             foreach (TValue toUnionValue in toUnion)
             {
-                if (!source.Contains(toUnionValue, equalityComparer))
+                if (!source.Contains(toUnionValue, EqualityComparer<TValue>.Default))
                     source.Add(toUnionValue);
             }
 
             return source;
         }
-
-        public static IList<TValue> UnionAdd<TValue>(this IList<TValue> source, IEnumerable<TValue> toUnion)
-            => UnionAdd(source, toUnion, EqualityComparer<TValue>.Default);
     }
 }

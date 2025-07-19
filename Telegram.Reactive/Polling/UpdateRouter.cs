@@ -1,10 +1,10 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
-using Telegram.Reactive.Core.Configuration;
-using Telegram.Reactive.Core.Descriptors;
-using Telegram.Reactive.Core.Polling;
-using Telegram.Reactive.Core.Providers;
+using Telegram.Reactive.Configuration;
+using Telegram.Reactive.Handlers.Components;
+using Telegram.Reactive.MadiatorCore;
+using Telegram.Reactive.MadiatorCore.Descriptors;
 
 namespace Telegram.Reactive.Polling
 {
@@ -48,6 +48,9 @@ namespace Telegram.Reactive.Polling
 
         /// <inheritdoc/>
         public IRouterExceptionHandler? ExceptionHandler { get; set; }
+
+        /// <inheritdoc/>
+        public IHandlerContainerFactory? DefaultContainerFactory { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UpdateRouter"/> class.
@@ -111,11 +114,11 @@ namespace Telegram.Reactive.Polling
         private IEnumerable<DescribedHandlerInfo> GetHandlers(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             // Getting handlers in update awaiting pool
-            IEnumerable<DescribedHandlerInfo> handlers = AwaitingProvider.GetHandlers(this, botClient, update);
+            IEnumerable<DescribedHandlerInfo> handlers = AwaitingProvider.GetHandlers(this, botClient, update, cancellationToken);
             if (handlers.Any() && Options.ExclusiveAwaitingHandlerRouting)
                 return handlers;
 
-            return handlers.Concat(HandlersProvider.GetHandlers(this, botClient, update));
+            return handlers.Concat(HandlersProvider.GetHandlers(this, botClient, update, cancellationToken));
         }
     }
 }

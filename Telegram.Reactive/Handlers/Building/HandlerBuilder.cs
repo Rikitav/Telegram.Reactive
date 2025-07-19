@@ -1,11 +1,11 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Reactive.Core.Components.Filters;
-using Telegram.Reactive.Core.Components.Handlers;
-using Telegram.Reactive.Core.Components.Handlers.Building;
-using Telegram.Reactive.Core.Components.StateKeeping;
-using Telegram.Reactive.Core.Descriptors;
-using Telegram.Reactive.Core.Providers;
+using Telegram.Reactive.Annotations.StateKeeping;
+using Telegram.Reactive.Filters.Components;
+using Telegram.Reactive.Handlers.Building.Components;
+using Telegram.Reactive.MadiatorCore;
+using Telegram.Reactive.MadiatorCore.Descriptors;
+using Telegram.Reactive.StateKeeping.Components;
 
 namespace Telegram.Reactive.Handlers.Building
 {
@@ -16,7 +16,7 @@ namespace Telegram.Reactive.Handlers.Building
     /// <param name="container">The handler container with execution context.</param>
     /// <param name="cancellation">The cancellation token.</param>
     /// <returns>A task representing the asynchronous execution.</returns>
-    public delegate Task ExecuteHandlerAction<TUpdate>(AbstractHandlerContainer<TUpdate> container, CancellationToken cancellation) where TUpdate : class;
+    public delegate Task AbstractHandlerAction<TUpdate>(IAbstractHandlerContainer<TUpdate> container, CancellationToken cancellation) where TUpdate : class;
 
     /// <summary>
     /// Builder class for creating regular handlers that can process updates.
@@ -34,35 +34,23 @@ namespace Telegram.Reactive.Handlers.Building
         public HandlerBuilder(UpdateType updateType, IHandlersCollection handlerCollection) : base(typeof(BuildedAbstractHandler<TUpdate>), updateType, handlerCollection)
         {
             if (!updateType.IsValidUpdateObject<TUpdate>())
-                throw new ArgumentException();
+                throw new ArgumentException("\"UpdateType." + updateType + "\" is not valid type for \"" + nameof(TUpdate) + "\" update object", nameof(updateType));
         }
 
-        /// <inheritdoc/>
         /// <summary>
         /// Builds an abstract handler with the specified execution action.
         /// </summary>
         /// <param name="executeHandler">The delegate action to execute when the handler is invoked.</param>
         /// <exception cref="ArgumentNullException">Thrown when executeHandler is null.</exception>
-        public void BuildAbstract(ExecuteHandlerAction<TUpdate> executeHandler)
+        public void Build(AbstractHandlerAction<TUpdate> executeHandler)
         {
             if (executeHandler == null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(executeHandler));
 
             BuildedAbstractHandler<TUpdate> instance = new BuildedAbstractHandler<TUpdate>(UpdateType, executeHandler);
             BuildImplicitDescriptor(instance);
         }
 
-        /// <inheritdoc/>
-        /// <summary>
-        /// Builds a handler with the specified execution function.
-        /// </summary>
-        /// <param name="executeHandler">The function to execute when the handler is invoked.</param>
-        public void Build(Func<IAbstractHandlerContainer<TUpdate>, CancellationToken, Task> executeHandler)
-        {
-            BuildAbstract(executeHandler.Invoke);
-        }
-
-        /// <inheritdoc/>
         /// <summary>
         /// Sets a custom update validation action.
         /// </summary>

@@ -1,7 +1,7 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Reactive.Attributes;
-using Telegram.Reactive.Core.Components.Filters;
+using Telegram.Reactive.Filters.Components;
 
 namespace Telegram.Reactive.Handlers
 {
@@ -33,7 +33,10 @@ namespace Telegram.Reactive.Handlers
 
             ReceivedCommand = message.Text.Substring(commandEntity.Offset + 1, commandEntity.Length - 1);
             if (ReceivedCommand.Contains('@'))
-                ReceivedCommand = ReceivedCommand.Substring(0, ReceivedCommand.IndexOf('@'));
+            {
+                string[] split = ReceivedCommand.Split('@');
+                ReceivedCommand = split[0];
+            }
             
             return true;
         }

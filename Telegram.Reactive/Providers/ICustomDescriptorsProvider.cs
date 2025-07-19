@@ -1,4 +1,4 @@
-﻿using Telegram.Reactive.Core.Descriptors;
+﻿using Telegram.Reactive.MadiatorCore.Descriptors;
 
 namespace Telegram.Reactive.Providers
 {

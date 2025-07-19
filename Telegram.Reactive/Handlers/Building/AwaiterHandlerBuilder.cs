@@ -1,12 +1,13 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Reactive.Core.Components.Filters;
-using Telegram.Reactive.Core.Components.Handlers.Building;
-using Telegram.Reactive.Core.Components.StateKeeping;
-using Telegram.Reactive.Core.Descriptors;
-using Telegram.Reactive.Core.Providers;
+using Telegram.Reactive.Annotations.StateKeeping;
 using Telegram.Reactive.Filters;
+using Telegram.Reactive.Filters.Components;
+using Telegram.Reactive.Handlers.Building.Components;
+using Telegram.Reactive.MadiatorCore;
+using Telegram.Reactive.MadiatorCore.Descriptors;
 using Telegram.Reactive.StateKeeping;
+using Telegram.Reactive.StateKeeping.Components;
 
 namespace Telegram.Reactive.Handlers.Building
 {
@@ -15,7 +16,7 @@ namespace Telegram.Reactive.Handlers.Building
     /// Provides fluent API for configuring filters, state keepers, and other handler properties.
     /// </summary>
     /// <typeparam name="TUpdate">The type of update to await.</typeparam>
-    public class AwaiterHandlerBuilder<TUpdate> : HandlerBuilderBase, IAwaitingHandlerBuilder<TUpdate>, IHandlerBuilderActions<AwaiterHandlerBuilder<TUpdate>> where TUpdate : class
+    public class AwaiterHandlerBuilder<TUpdate> : HandlerBuilderBase, IAwaiterHandlerBuilder<TUpdate>, IHandlerBuilderActions<AwaiterHandlerBuilder<TUpdate>> where TUpdate : class
     {
         /// <summary>
         /// The awaiting provider for managing handler registration.

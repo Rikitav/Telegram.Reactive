@@ -3,14 +3,12 @@ using System.Reflection;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Reactive.Core.Collections;
-using Telegram.Reactive.Core.Components.Filters;
-using Telegram.Reactive.Core.Components.Handlers;
-using Telegram.Reactive.Core.Configuration;
-using Telegram.Reactive.Core.Descriptors;
-using Telegram.Reactive.Core.Polling;
-using Telegram.Reactive.Core.Providers;
-using Telegram.Reactive.FilterAttributes;
+using Telegram.Reactive.Annotations;
+using Telegram.Reactive.Configuration;
+using Telegram.Reactive.Filters.Components;
+using Telegram.Reactive.Handlers.Components;
+using Telegram.Reactive.MadiatorCore;
+using Telegram.Reactive.MadiatorCore.Descriptors;
 
 namespace Telegram.Reactive.Providers
 {
@@ -21,6 +19,9 @@ namespace Telegram.Reactive.Providers
     /// </summary>
     public class HandlersProvider : IHandlersProvider
     {
+        /// <inheritdoc/>
+        public IEnumerable<UpdateType> AllowedTypes { get; }
+
         /// <summary>
         /// Read-only dictionary mapping <see cref="UpdateType"/> to lists of handler descriptors.
         /// Each descriptor list is frozen to prevent modification after initialization.
@@ -44,8 +45,24 @@ namespace Telegram.Reactive.Providers
         /// <param name="options">Configuration options for the bot and handler execution</param>
         /// <param name="botInfo">Information about the Telegram bot instance</param>
         /// <exception cref="ArgumentNullException">Thrown when options or botInfo is null</exception>
+        public HandlersProvider(IHandlersCollection handlers, TelegramBotOptions options, ITelegramBotInfo botInfo)
+        {
+            AllowedTypes = handlers.AllowedTypes;
+            HandlersDictionary = handlers.Values.ForEach(list => list.Freeze()).ToReadOnlyDictionary(list => list.HandlingType);
+            Options = options ?? throw new ArgumentNullException(nameof(options));
+            BotInfo = botInfo ?? throw new ArgumentNullException(nameof(botInfo));
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="HandlersProvider"/> with the specified handler collections and configuration.
+        /// </summary>
+        /// <param name="handlers">Collection of handler descriptor lists organized by update type</param>
+        /// <param name="options">Configuration options for the bot and handler execution</param>
+        /// <param name="botInfo">Information about the Telegram bot instance</param>
+        /// <exception cref="ArgumentNullException">Thrown when options or botInfo is null</exception>
         public HandlersProvider(IEnumerable<HandlerDescriptorList> handlers, TelegramBotOptions options, ITelegramBotInfo botInfo)
         {
+            AllowedTypes = Update.AllTypes;
             HandlersDictionary = handlers.ForEach(list => list.Freeze()).ToReadOnlyDictionary(list => list.HandlingType);
             Options = options ?? throw new ArgumentNullException(nameof(options));
             BotInfo = botInfo ?? throw new ArgumentNullException(nameof(botInfo));
@@ -58,8 +75,9 @@ namespace Telegram.Reactive.Providers
         /// <param name="updateRouter">The update router for handler execution</param>
         /// <param name="client">The Telegram bot client instance</param>
         /// <param name="update">The incoming Telegram update to process</param>
+        /// <param name="cancellationToken"></param>
         /// <returns>A collection of described handler information for the update</returns>
-        public virtual IEnumerable<DescribedHandlerInfo> GetHandlers(IUpdateRouter updateRouter, ITelegramBotClient client, Update update)
+        public virtual IEnumerable<DescribedHandlerInfo> GetHandlers(IUpdateRouter updateRouter, ITelegramBotClient client, Update update, CancellationToken cancellationToken = default)
         {
             if (!HandlersDictionary.TryGetValue(update.Type, out HandlerDescriptorList? descriptors))
             {
@@ -70,7 +88,7 @@ namespace Telegram.Reactive.Providers
             if (descriptors == null || !descriptors.Any())
                 return [];
 
-            return DescribeDescriptors(descriptors, updateRouter, client, update);
+            return DescribeDescriptors(descriptors, updateRouter, client, update, cancellationToken);
         }
 
         /// <summary>
@@ -81,12 +99,14 @@ namespace Telegram.Reactive.Providers
         /// <param name="updateRouter">The update router for handler execution</param>
         /// <param name="client">The Telegram bot client instance</param>
         /// <param name="update">The incoming Telegram update to process</param>
+        /// <param name="cancellationToken"></param>
         /// <returns>A collection of described handler information</returns>
-        public virtual IEnumerable<DescribedHandlerInfo> DescribeDescriptors(HandlerDescriptorList descriptors, IUpdateRouter updateRouter, ITelegramBotClient client, Update update)
+        public virtual IEnumerable<DescribedHandlerInfo> DescribeDescriptors(HandlerDescriptorList descriptors, IUpdateRouter updateRouter, ITelegramBotClient client, Update update, CancellationToken cancellationToken = default)
         {
             foreach (HandlerDescriptor descriptor in descriptors.Reverse())
             {
-                DescribedHandlerInfo? describedHandler = DescribeHandler(descriptor, updateRouter, client, update);
+                cancellationToken.ThrowIfCancellationRequested();
+                DescribedHandlerInfo? describedHandler = DescribeHandler(descriptor, updateRouter, client, update, cancellationToken);
                 if (describedHandler == null)
                     continue;
 
@@ -104,14 +124,16 @@ namespace Telegram.Reactive.Providers
         /// <param name="updateRouter">The update router for handler execution</param>
         /// <param name="client">The Telegram bot client instance</param>
         /// <param name="update">The incoming Telegram update to process</param>
+        /// <param name="cancellationToken"></param>
         /// <returns>The described handler info if validation passes; otherwise, null</returns>
-        public virtual DescribedHandlerInfo? DescribeHandler(HandlerDescriptor descriptor, IUpdateRouter updateRouter, ITelegramBotClient client, Update update)
+        public virtual DescribedHandlerInfo? DescribeHandler(HandlerDescriptor descriptor, IUpdateRouter updateRouter, ITelegramBotClient client, Update update, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             FilterExecutionContext<Update> filterContext = new FilterExecutionContext<Update>(BotInfo, update, update);
             if (!descriptor.Filters.Validate(filterContext))
                 return null;
 
-            UpdateHandlerBase handlerInstance = GetHandlerInstance(descriptor);
+            UpdateHandlerBase handlerInstance = GetHandlerInstance(descriptor, cancellationToken);
             return new DescribedHandlerInfo(updateRouter, client, handlerInstance, filterContext, descriptor.DisplayString);
         }
 
@@ -120,10 +142,12 @@ namespace Telegram.Reactive.Providers
         /// Supports singleton, implicit, keyed, and general descriptor types with different instantiation patterns.
         /// </summary>
         /// <param name="descriptor">The handler descriptor containing type and instantiation information</param>
+        /// <param name="cancellationToken"></param>
         /// <returns>An instance of <see cref="UpdateHandlerBase"/> for the descriptor</returns>
         /// <exception cref="Exception">Thrown when the descriptor type is not recognized</exception>
-        public virtual UpdateHandlerBase GetHandlerInstance(HandlerDescriptor descriptor)
+        public virtual UpdateHandlerBase GetHandlerInstance(HandlerDescriptor descriptor, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             switch (descriptor.Type)
             {
                 case DescriptorType.Implicit:
@@ -151,16 +175,21 @@ namespace Telegram.Reactive.Providers
         /// Gets the list of bot commands defined by all handler types with <see cref="CommandAlliasAttribute"/>.
         /// Extracts command aliases and descriptions from message handlers for bot command registration.
         /// </summary>
+        /// <param name="cancellationToken"></param>
         /// <returns>A collection of <see cref="BotCommand"/> objects for the bot</returns>
-        public IEnumerable<BotCommand> GetBotCommands()
+        public IEnumerable<BotCommand> GetBotCommands(CancellationToken cancellationToken = default)
         {
             if (!HandlersDictionary.TryGetValue(UpdateType.Message, out HandlerDescriptorList? list))
-                return [];
+                yield break;
 
-            return list
+            foreach (BotCommand botCommand in list
                 .Select(descriptor => descriptor.HandlerType)
-                .SelectMany(handlerType => handlerType.GetCustomAttributes<CommandAlliasAttribute>())
-                .SelectMany(attribute => attribute.Alliases.Select(alias => new BotCommand(alias, attribute.Description)));
+                .SelectMany(handlerType => handlerType.GetCustomAttributes<CommandAlliasAttribute>()
+                .SelectMany(attribute => attribute.Alliases.Select(alias => new BotCommand(alias, attribute.Description)))))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return botCommand;
+            }
         }
 
         /// <summary>

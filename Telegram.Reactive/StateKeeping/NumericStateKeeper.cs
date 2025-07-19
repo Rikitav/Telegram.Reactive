@@ -1,5 +1,6 @@
-﻿using Telegram.Reactive.Core.Components.Handlers;
-using Telegram.Reactive.Core.Components.StateKeeping;
+﻿using Telegram.Reactive.Annotations.StateKeeping;
+using Telegram.Reactive.Handlers.Components;
+using Telegram.Reactive.StateKeeping.Components;
 
 namespace Telegram.Reactive.StateKeeping
 {

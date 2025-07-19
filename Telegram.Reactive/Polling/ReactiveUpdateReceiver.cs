@@ -54,11 +54,10 @@ namespace Telegram.Reactive.Polling
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                request.Timeout = (int)Client.Timeout.TotalSeconds;
                 try
                 {
-                    Update[] updates = await Client.SendRequest(request, cancellationToken).ConfigureAwait(false);
-                    foreach (Update update in updates)
+                    request.Timeout = (int)Client.Timeout.TotalSeconds;
+                    foreach (Update update in await Client.SendRequest(request, cancellationToken).ConfigureAwait(false))
                     {
                         try
                         {

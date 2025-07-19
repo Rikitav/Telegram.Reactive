@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Reactive.Core.Components.Filters;
+using Telegram.Reactive.Filters.Components;
 
 namespace Telegram.Reactive.Filters
 {
@@ -11,11 +11,13 @@ namespace Telegram.Reactive.Filters
     public class MessageTypeFilter : Filter<Message>
     {
         private readonly MessageType type;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageTypeFilter"/> class.
         /// </summary>
         /// <param name="type">The message type to filter by.</param>
         public MessageTypeFilter(MessageType type) => this.type = type;
+
         /// <inheritdoc/>
         public override bool CanPass(FilterExecutionContext<Message> context)
             => context.Input.Type == type;
@@ -68,6 +70,7 @@ namespace Telegram.Reactive.Filters
     {
         private readonly DiceType? Dice;
         private readonly int Value;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DiceThrowedFilter"/> class for a specific value.
         /// </summary>
@@ -76,21 +79,26 @@ namespace Telegram.Reactive.Filters
         {
             Value = value;
         }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DiceThrowedFilter"/> class for a specific dice type and value.
         /// </summary>
         /// <param name="diceType">The dice type to filter by.</param>
         /// <param name="value">The dice value to filter by.</param>
         public DiceThrowedFilter(DiceType diceType, int value) : this(value) => Dice = diceType;
+
         /// <inheritdoc/>
         public override bool CanPass(FilterExecutionContext<Message> context)
         {
             if (context.Input.Dice == null)
                 return false;
+
             if (Dice != null && context.Input.Dice.Emoji != GetEmojyForDiceType(Dice))
                 return false;
+
             return context.Input.Dice.Value == Value;
         }
+
         private static string? GetEmojyForDiceType(DiceType? diceType) => diceType switch
         {
             DiceType.Dice => "🎲",
@@ -115,6 +123,7 @@ namespace Telegram.Reactive.Filters
         /// <param name="regexOptions">The regex options.</param>
         public MessageRegexFilter(string pattern, RegexOptions regexOptions = default)
             : base(msg => msg.Text, pattern, regexOptions) { }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageRegexFilter"/> class with a regex object.
         /// </summary>
@@ -133,10 +142,12 @@ namespace Telegram.Reactive.Filters
         private readonly string? Content;
         private readonly int? Offset;
         private readonly int? Length;
+
         /// <summary>
         /// Gets the entities found in the message that match the filter.
         /// </summary>
         public MessageEntity[] FoundEntities { get; set; } = null!;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageHasEntityFilter"/> class for a specific entity type.
         /// </summary>
@@ -145,6 +156,7 @@ namespace Telegram.Reactive.Filters
         {
             EntityType = type;
         }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageHasEntityFilter"/> class for a specific entity type, offset, and length.
         /// </summary>
@@ -157,6 +169,7 @@ namespace Telegram.Reactive.Filters
             Offset = offset;
             Length = length;
         }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageHasEntityFilter"/> class for a specific entity type and content.
         /// </summary>
@@ -169,6 +182,7 @@ namespace Telegram.Reactive.Filters
             Content = content;
             _stringComparison = stringComparison;
         }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageHasEntityFilter"/> class for a specific entity type, offset, length, and content.
         /// </summary>
@@ -185,29 +199,37 @@ namespace Telegram.Reactive.Filters
             Content = content;
             _stringComparison = stringComparison;
         }
+
         /// <inheritdoc/>
         public override bool CanPass(FilterExecutionContext<Message> context)
         {
             if (context.Input is not { Entities.Length: > 0 })
                 return false;
+
             FoundEntities = context.Input.Entities.Where(entity => FilterEntity(context.Input.Text, entity)).ToArray();
-            return FoundEntities.Any();
+            return FoundEntities.Length != 0;
         }
+
         private bool FilterEntity(string? text, MessageEntity entity)
         {
             if (EntityType != null && entity.Type != EntityType)
                 return false;
+
             if (Offset != null && entity.Offset != Offset)
                 return false;
+
             if (Length != null && entity.Length != Length)
                 return false;
+
             if (Content != null)
             {
                 if (text is not { Length: > 0 })
                     return false;
+
                 if (!text.Substring(entity.Offset, entity.Length).Equals(Content, _stringComparison))
                     return false;
             }
+
             return true;
         }
     }

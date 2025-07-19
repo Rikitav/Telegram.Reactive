@@ -1,5 +1,5 @@
 ﻿using Telegram.Bot.Types;
-using Telegram.Reactive.Core.Components.Filters;
+using Telegram.Reactive.Filters.Components;
 
 namespace Telegram.Reactive.Filters
 {
@@ -46,7 +46,7 @@ namespace Telegram.Reactive.Filters
             if (Reply.Text == null)
                 return false;
 
-            string userName = Mention ?? context.BotInfo.User.Username ?? throw new ArgumentNullException("bot name");
+            string userName = Mention ?? context.BotInfo.User.Username ?? throw new ArgumentNullException(nameof(context), "RepliedMentionedFilter requires BotInfo to be initialized");
             MessageEntity entity = context.CompletedFilters.Get<MessageHasEntityFilter>(0).FoundEntities.ElementAt(0);
 
             string mention = Reply.Text.Substring(entity.Offset + 1, entity.Length - 1);

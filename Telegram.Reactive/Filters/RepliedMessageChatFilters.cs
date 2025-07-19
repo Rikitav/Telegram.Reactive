@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Reactive.Core.Components.Filters;
+using Telegram.Reactive.Filters.Components;
 
 namespace Telegram.Reactive.Filters
 {
@@ -58,12 +58,14 @@ namespace Telegram.Reactive.Filters
     public class RepliedMessageChatIdFilter : RepliedMessageChatFilter
     {
         private readonly long Id;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RepliedMessageChatIdFilter"/> class.
         /// </summary>
         /// <param name="id">The chat ID to match.</param>
         /// <param name="replyDepth">The reply depth to search up the reply chain for the target message.</param>
         public RepliedMessageChatIdFilter(long id, int replyDepth = 1) : base(replyDepth) => Id = id;
+
         /// <inheritdoc/>
         protected override bool CanPassNext(FilterExecutionContext<Message> _)
             => Chat.Id == Id;
@@ -75,12 +77,14 @@ namespace Telegram.Reactive.Filters
     public class RepliedMessageChatTypeFilter : RepliedMessageChatFilter
     {
         private readonly ChatType Type;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RepliedMessageChatTypeFilter"/> class.
         /// </summary>
         /// <param name="type">The chat type to match.</param>
         /// <param name="replyDepth">The reply depth to search up the reply chain for the target message.</param>
         public RepliedMessageChatTypeFilter(ChatType type, int replyDepth = 1) : base(replyDepth) => Type = type;
+
         /// <inheritdoc/>
         protected override bool CanPassNext(FilterExecutionContext<Message> _)
             => Chat.Type == Type;
@@ -93,12 +97,14 @@ namespace Telegram.Reactive.Filters
     {
         private readonly string? Title;
         private readonly StringComparison Comparison = StringComparison.InvariantCulture;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RepliedMessageChatTitleFilter"/> class.
         /// </summary>
         /// <param name="title">The chat title to match.</param>
         /// <param name="replyDepth">The reply depth to search up the reply chain for the target message.</param>
         public RepliedMessageChatTitleFilter(string? title, int replyDepth = 1) : base(replyDepth) => Title = title;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RepliedMessageChatTitleFilter"/> class with a specific string comparison.
         /// </summary>
@@ -107,6 +113,7 @@ namespace Telegram.Reactive.Filters
         /// <param name="replyDepth">The reply depth to search up the reply chain for the target message.</param>
         public RepliedMessageChatTitleFilter(string? title, StringComparison comparison, int replyDepth = 1)
             : this(title, replyDepth) => Comparison = comparison;
+
         /// <inheritdoc/>
         protected override bool CanPassNext(FilterExecutionContext<Message> _)
         {
@@ -123,12 +130,14 @@ namespace Telegram.Reactive.Filters
     {
         private readonly string? UserName;
         private readonly StringComparison Comparison = StringComparison.InvariantCulture;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RepliedMessageChatUsernameFilter"/> class.
         /// </summary>
         /// <param name="userName">The chat username to match.</param>
         /// <param name="replyDepth">The reply depth to search up the reply chain for the target message.</param>
         public RepliedMessageChatUsernameFilter(string? userName, int replyDepth = 1) : base(replyDepth) => UserName = userName;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RepliedMessageChatUsernameFilter"/> class with a specific string comparison.
         /// </summary>
@@ -137,6 +146,7 @@ namespace Telegram.Reactive.Filters
         /// <param name="replyDepth">The reply depth to search up the reply chain for the target message.</param>
         public RepliedMessageChatUsernameFilter(string? userName, StringComparison comparison, int replyDepth = 1)
             : this(userName, replyDepth) => Comparison = comparison;
+
         /// <inheritdoc/>
         protected override bool CanPassNext(FilterExecutionContext<Message> _)
         {
@@ -154,6 +164,7 @@ namespace Telegram.Reactive.Filters
         private readonly string? FirstName;
         private readonly string? LastName;
         private readonly StringComparison Comparison = StringComparison.InvariantCulture;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RepliedMessageChatNameFilter"/> class.
         /// </summary>
@@ -165,6 +176,7 @@ namespace Telegram.Reactive.Filters
             FirstName = firstName;
             LastName = lastName;
         }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RepliedMessageChatNameFilter"/> class with a specific string comparison.
         /// </summary>
@@ -174,6 +186,7 @@ namespace Telegram.Reactive.Filters
         /// <param name="replyDepth">The reply depth to search up the reply chain for the target message.</param>
         public RepliedMessageChatNameFilter(string? firstName, string? lastName, StringComparison comparison, int replyDepth = 1)
             : this(firstName, lastName, replyDepth) => Comparison = comparison;
+
         /// <inheritdoc/>
         protected override bool CanPassNext(FilterExecutionContext<Message> _)
         {
@@ -181,16 +194,20 @@ namespace Telegram.Reactive.Filters
             {
                 if (Chat.LastName == null)
                     return false;
+
                 if (Chat.LastName.Equals(LastName, Comparison))
                     return false;
             }
+
             if (FirstName != null)
             {
                 if (Chat.FirstName == null)
                     return false;
+
                 if (Chat.FirstName.Equals(FirstName, Comparison))
                     return false;
             }
+
             return true;
         }
     }

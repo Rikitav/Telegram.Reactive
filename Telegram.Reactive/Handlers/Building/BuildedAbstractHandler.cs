@@ -1,4 +1,5 @@
 ﻿using Telegram.Bot.Types.Enums;
+using Telegram.Reactive.Handlers.Components;
 
 namespace Telegram.Reactive.Handlers.Building
 {
@@ -12,14 +13,14 @@ namespace Telegram.Reactive.Handlers.Building
         /// <summary>
         /// The delegate action to execute when the handler is invoked.
         /// </summary>
-        private readonly ExecuteHandlerAction<TUpdate> HandlerAction;
+        private readonly AbstractHandlerAction<TUpdate> HandlerAction;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuildedAbstractHandler{TUpdate}"/> class.
         /// </summary>
         /// <param name="handlingUpdateType">The type of update this handler processes.</param>
         /// <param name="handlerAction">The delegate action to execute.</param>
-        public BuildedAbstractHandler(UpdateType handlingUpdateType, ExecuteHandlerAction<TUpdate> handlerAction) : base(handlingUpdateType)
+        public BuildedAbstractHandler(UpdateType handlingUpdateType, AbstractHandlerAction<TUpdate> handlerAction) : base(handlingUpdateType)
         {
             HandlerAction = handlerAction;
         }
@@ -30,7 +31,7 @@ namespace Telegram.Reactive.Handlers.Building
         /// <param name="container">The handler container with execution context.</param>
         /// <param name="cancellation">The cancellation token.</param>
         /// <returns>A task representing the asynchronous execution.</returns>
-        public override Task Execute(AbstractHandlerContainer<TUpdate> container, CancellationToken cancellation)
+        public override Task Execute(IAbstractHandlerContainer<TUpdate> container, CancellationToken cancellation)
             => HandlerAction.Invoke(container, cancellation);
     }
 }

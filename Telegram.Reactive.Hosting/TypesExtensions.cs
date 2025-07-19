@@ -4,11 +4,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Reactive.Core.Configuration;
-using Telegram.Reactive.Core.Polling;
-using Telegram.Reactive.Core.Providers;
-using Telegram.Reactive.Hosting.Extensions;
+using Telegram.Reactive.Configuration;
+using Telegram.Reactive.Hosting.Components;
+using Telegram.Reactive.Hosting.Configuration;
+using Telegram.Reactive.Hosting.Polling;
+using Telegram.Reactive.Hosting.Providers;
 using Telegram.Reactive.Hosting.Services;
+using Telegram.Reactive.MadiatorCore;
 
 namespace Telegram.Reactive.Hosting
 {
@@ -22,19 +24,13 @@ namespace Telegram.Reactive.Hosting
 
         public static IServiceCollection AddTelegramBotHostDefaults(this IServiceCollection services)
         {
+            services.AddLogging(builder => builder.AddConsole());
             services.AddSingleton<IUpdateHandlersPool, HostUpdateHandlersPool>();
             services.AddSingleton<IAwaitingProvider, HostAwaitingProvider>();
             services.AddSingleton<IHandlersProvider, HostHandlersProvider>();
-            services.AddSingleton<ITelegramBotInfo, TelegramBotInfo>();
             services.AddSingleton<IUpdateRouter, HostUpdateRouter>();
-            services.AddLogging(builder => builder.AddConsole());
+            services.AddSingleton<ITelegramBotInfo, TelegramBotInfo>(services => new TelegramBotInfo(services.GetRequiredService<ITelegramBotClient>().GetMe().Result));
             
-            return services;
-        }
-
-        public static IServiceCollection AddTelegramWebhook(this IServiceCollection services)
-        {
-            services.AddHttpClient<ITelegramBotClient>("tgwebhook").RemoveAllLoggers().AddTypedClient(TypedTelegramBotClientFactory);
             return services;
         }
 
@@ -51,23 +47,12 @@ namespace Telegram.Reactive.Hosting
 
     public static class TelegramBotHostExtensions
     {
-        public static TelegramBotHost SetBotCommands(this TelegramBotHost botHost)
+        public static ITelegramBotHost SetBotCommands(this ITelegramBotHost botHost)
         {
             ITelegramBotClient client = botHost.Services.GetRequiredService<ITelegramBotClient>();
             IEnumerable<BotCommand> aliases = botHost.UpdateRouter.HandlersProvider.GetBotCommands();
             client.SetMyCommands(aliases).Wait();
             return botHost;
         }
-    }
-
-    public static class TelegramBotHostBuilderExtensions
-    {
-        /*
-        public static ITelegramBotHostBuilder SetAllowedUpdates(this ITelegramBotHostBuilder builder)
-        {
-            builder.Options.AllowedUpdates = builder.Handlers.Keys.ToArray();
-            return builder;
-        }
-        */
     }
 }

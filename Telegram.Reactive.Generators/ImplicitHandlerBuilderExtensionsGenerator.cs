@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 
 namespace Telegram.Reactive.Generators
@@ -11,9 +12,8 @@ namespace Telegram.Reactive.Generators
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-#if ANALYZERSDEBUG //fgffd
-            if (!Debugger.IsAttached)
-                Debugger.Launch();
+#if DEBUG
+            //Debugger.Launch();
 #endif
             IncrementalValueProvider<ImmutableArray<ClassDeclarationSyntax>> pipeline = context.SyntaxProvider
                 .CreateSyntaxProvider(SyntaxPredicate, SyntaxTransform)
@@ -25,7 +25,7 @@ namespace Telegram.Reactive.Generators
 
         private static bool SyntaxPredicate(SyntaxNode node, CancellationToken _)
         {
-            if (node is not ClassDeclarationSyntax classDeclaration)
+            if (node is not ClassDeclarationSyntax)
                 return false;
 
             return true;
@@ -48,11 +48,13 @@ namespace Telegram.Reactive.Generators
 
         private static void GenerateSource(SourceProductionContext context, ImmutableArray<ClassDeclarationSyntax> declarations)
         {
-            context.AddSource("Test.cs", "// хуй");
-            //return;
-
-            List<string> usings = ["using System;", "using Telegram.Reactive.Attributes;", "using Telegram.Reactive.FilterAttributes;", "using Telegram.Reactive.Handlers.Building;", "using Telegram.Reactive.Core.Components.Handlers.Building;"];
+            StringBuilder source = new StringBuilder();
             Dictionary<string, string> targeters = [];
+            List<string> usingDirectives =
+            [
+                "using Telegram.Reactive.Handlers.Building;",
+                "using Telegram.Reactive.Handlers.Building.Components;"
+            ];
 
             StringBuilder sourceBuilder = new StringBuilder()
                 .AppendLine("namespace Telegram.Reactive")
@@ -66,7 +68,8 @@ namespace Telegram.Reactive.Generators
             {
                 try
                 {
-                    ParseClassDeclaration(sourceBuilder, classDeclaration, usings, targeters);
+                    usingDirectives.UnionAdd(classDeclaration.FindCompilationUnitSyntax().Usings.Select(use => use.ToString()));
+                    ParseClassDeclaration(sourceBuilder, classDeclaration, targeters);
                 }
                 catch (TargteterNotFoundException)
                 {
@@ -83,7 +86,8 @@ namespace Telegram.Reactive.Generators
             {
                 try
                 {
-                    ParseClassDeclaration(sourceBuilder, classDeclaration, usings, targeters);
+                    usingDirectives.UnionAdd(classDeclaration.FindCompilationUnitSyntax().Usings.Select(use => use.ToString()));
+                    ParseClassDeclaration(sourceBuilder, classDeclaration, targeters);
                 }
                 catch (Exception exc)
                 {
@@ -93,16 +97,13 @@ namespace Telegram.Reactive.Generators
             }
 
             sourceBuilder.AppendLine("\t}\n}");
-            sourceBuilder.Insert(0, string.Join("\n", usings.Select(use => use.Trim()).Distinct().OrderBy(use => use)) + "\n\n");
+            sourceBuilder.Insert(0, string.Join("\n", usingDirectives.Select(use => use.ToString()).OrderBy(use => use)) + "\n\n");
             context.AddSource("GeneratedHandlerBuilderExtensions.cs", sourceBuilder.ToString());
         }
 
-        private static void ParseClassDeclaration(StringBuilder sourceBuilder, ClassDeclarationSyntax classDeclaration, List<string> usings, Dictionary<string, string> targeters)
+        private static void ParseClassDeclaration(StringBuilder sourceBuilder, ClassDeclarationSyntax classDeclaration, Dictionary<string, string> targeters)
         {
-            CompilationUnitSyntax compilationUnit = classDeclaration.FindCompilationUnitSyntax();
-            usings.AddRange(compilationUnit.Usings.Select(use => use.ToFullString()));
-            
-            IEnumerable<MethodDeclarationSyntax> methods = classDeclaration.Members.WhereCast<MethodDeclarationSyntax>();
+            IEnumerable<MethodDeclarationSyntax> methods = classDeclaration.Members.OfType<MethodDeclarationSyntax>();
             MethodDeclarationSyntax? targeterMethod = methods.FirstOrDefault(method => method.Identifier.ToString() == "GetFilterringTarget");
 
             string className = classDeclaration.Identifier.ToString();
@@ -147,7 +148,7 @@ namespace Telegram.Reactive.Generators
                 sourceBuilder.AppendLine();
             }
 
-            foreach (ConstructorDeclarationSyntax constructor in classDeclaration.Members.WhereCast<ConstructorDeclarationSyntax>())
+            foreach (ConstructorDeclarationSyntax constructor in classDeclaration.Members.OfType<ConstructorDeclarationSyntax>())
             {
                 if (constructor.Initializer == null)
                     continue;
@@ -161,9 +162,9 @@ namespace Telegram.Reactive.Generators
         {
 #if DEBUG
             sourceBuilder
-                .AppendLine("\t\t/// <summary>")
-                .AppendLine("\t\t/// Test description")
-                .AppendLine("\t\t/// </summary>");
+                .Append("\t\t/// <summary>").AppendLine()
+                .Append("\t\t/// Adds ").Append(filterName).Append(" filter to implicit handler").AppendLine()
+                .Append("\t\t/// </summary>").AppendLine();
 #endif
             sourceBuilder.Append("\t\tpublic static TBuilder ").Append(filterName).Append("<TBuilder>(this IHandlerBuilderActions<TBuilder> builder");
 

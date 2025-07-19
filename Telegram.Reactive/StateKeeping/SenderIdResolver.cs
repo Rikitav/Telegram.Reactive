@@ -1,5 +1,5 @@
 ﻿using Telegram.Bot.Types;
-using Telegram.Reactive.Core.Components.StateKeeping;
+using Telegram.Reactive.StateKeeping.Components;
 
 namespace Telegram.Reactive.StateKeeping
 {
@@ -16,6 +16,6 @@ namespace Telegram.Reactive.StateKeeping
         /// <returns>The sender ID as a long value.</returns>
         /// <exception cref="ArgumentException">Thrown when the update does not contain a valid sender ID.</exception>
         public long ResolveKey(Update keySource)
-            => keySource.GetSenderId() ?? throw new ArgumentException();
+            => keySource.GetSenderId() ?? throw new ArgumentException("Cannot resolve SenderID for this Update");
     }
 }

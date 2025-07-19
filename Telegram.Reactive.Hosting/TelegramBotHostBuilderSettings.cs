@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Telegram.Reactive.Core.Configuration;
+using Telegram.Reactive.Configuration;
 
 namespace Telegram.Reactive.Hosting
 {

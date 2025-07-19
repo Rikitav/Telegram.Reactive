@@ -1,13 +1,8 @@
-﻿using System.Collections.Concurrent;
-using Telegram.Bot;
+﻿using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
-using Telegram.Reactive.Core.Collections;
-using Telegram.Reactive.Core.Configuration;
-using Telegram.Reactive.Core.Descriptors;
-using Telegram.Reactive.Core.Polling;
-using Telegram.Reactive.Core.Providers;
-using Telegram.Reactive.Handlers.Building;
+using Telegram.Reactive.Configuration;
+using Telegram.Reactive.MadiatorCore;
+using Telegram.Reactive.MadiatorCore.Descriptors;
 
 namespace Telegram.Reactive.Providers
 {
@@ -25,21 +20,9 @@ namespace Telegram.Reactive.Providers
         protected readonly HandlerDescriptorList HandlersList = [];
 
         /// <inheritdoc/>
-        public override IEnumerable<DescribedHandlerInfo> GetHandlers(IUpdateRouter updateRouter, ITelegramBotClient client, Update update)
+        public override IEnumerable<DescribedHandlerInfo> GetHandlers(IUpdateRouter updateRouter, ITelegramBotClient client, Update update, CancellationToken cancellationToken = default)
         {
-            return DescribeDescriptors(HandlersList, updateRouter, client, update);
-        }
-
-        /// <summary>
-        /// Creates an awaiter handler builder for a specific update type.
-        /// </summary>
-        /// <typeparam name="TUpdate">The type of update to await.</typeparam>
-        /// <param name="updateType">The type of update to await.</param>
-        /// <param name="handlingUpdate">The update that triggered the awaiter creation.</param>
-        /// <returns>An awaiter handler builder for the specified update type.</returns>
-        public AwaiterHandlerBuilder<TUpdate> CreateAbstract<TUpdate>(UpdateType updateType, Update handlingUpdate) where TUpdate : class
-        {
-            return new AwaiterHandlerBuilder<TUpdate>(updateType, handlingUpdate, this);
+            return DescribeDescriptors(HandlersList, updateRouter, client, update, cancellationToken);
         }
 
         /// <inheritdoc/>

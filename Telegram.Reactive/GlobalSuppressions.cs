@@ -5,4 +5,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Style", "IDE0290:Использовать основной конструктор", Justification = "<Ожидание>", Scope = "member", Target = "~M:Telegram.Reactive.Filters.MessageChatTitleFilter.#ctor(System.String)")]
+[assembly: SuppressMessage("Style", "IDE0290")]
+[assembly: SuppressMessage("Style", "IDE0090")]
+[assembly: SuppressMessage("Style", "IDE0057")]

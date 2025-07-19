@@ -1,13 +1,11 @@
-﻿using System.Globalization;
-using System.Reflection;
+﻿using System.Reflection;
 using Telegram.Bot.Types.Enums;
+using Telegram.Reactive.Annotations;
 using Telegram.Reactive.Attributes;
-using Telegram.Reactive.Core.Collections;
-using Telegram.Reactive.Core.Components.Handlers;
-using Telegram.Reactive.Core.Configuration;
-using Telegram.Reactive.Core.Descriptors;
-using Telegram.Reactive.Core.Providers;
-using Telegram.Reactive.FilterAttributes;
+using Telegram.Reactive.Configuration;
+using Telegram.Reactive.Handlers.Components;
+using Telegram.Reactive.MadiatorCore;
+using Telegram.Reactive.MadiatorCore.Descriptors;
 
 namespace Telegram.Reactive.Providers
 {
@@ -18,6 +16,8 @@ namespace Telegram.Reactive.Providers
     /// <param name="options">Optional configuration options for handler collecting.</param>
     public class HandlersCollection(IHandlersCollectingOptions? options) : IHandlersCollection
     {
+        private readonly List<UpdateType> _allowedTypes = [];
+
         /// <summary>
         /// Dictionary that organizes handler descriptors by update type.
         /// </summary>
@@ -37,6 +37,9 @@ namespace Telegram.Reactive.Providers
         /// List of command aliases that have been registered.
         /// </summary>
         public readonly List<string> CommandAliasses = [];
+
+        /// <inheritdoc/>
+        public IEnumerable<UpdateType> AllowedTypes => _allowedTypes;
 
         /// <inheritdoc/>
         public IEnumerable<UpdateType> Keys
@@ -86,6 +89,11 @@ namespace Telegram.Reactive.Providers
             if (MustHaveParameterlessCtor && !descriptor.HandlerType.HasParameterlessCtor())
                 throw new Exception();
 
+            _allowedTypes.Union(descriptor.UpdateType);
+            MightAwaitAttribute[] mightAwaits = descriptor.HandlerType.GetCustomAttributes<MightAwaitAttribute>().ToArray();
+            if (mightAwaits.Length > 0)
+                _allowedTypes.Union(mightAwaits.SelectMany(attr => attr.UpdateTypes));
+
             IntersectCommands(descriptor);
             GetDescriptorList(descriptor).Add(descriptor);
             return this;
@@ -119,12 +127,13 @@ namespace Telegram.Reactive.Providers
             {
                 foreach (HandlerDescriptor handlerDescriptor in InvokeCustomDescriptorsProvider(handlerType))
                     AddDescriptor(handlerDescriptor);
-
-                return this;
+            }
+            else
+            {
+                HandlerDescriptor descriptor = new HandlerDescriptor(DescriptorType.General, handlerType);
+                AddDescriptor(descriptor);
             }
 
-            HandlerDescriptor descriptor = new HandlerDescriptor(DescriptorType.General, handlerType);
-            AddDescriptor(descriptor);
             return this;
         }
 
@@ -156,14 +165,11 @@ namespace Telegram.Reactive.Providers
             if (Options == null)
                 return;
 
-            if (!Options.ExceptIntersectingCommandAliases)
-                return;
-
             CommandAlliasAttribute? alliasAttribute = descriptor.HandlerType.GetCustomAttribute<CommandAlliasAttribute>();
             if (alliasAttribute == null)
                 return;
 
-            if (CommandAliasses.Intersect(alliasAttribute.Alliases, StringComparer.InvariantCultureIgnoreCase).Any())
+            if (Options.ExceptIntersectingCommandAliases && CommandAliasses.Intersect(alliasAttribute.Alliases, StringComparer.InvariantCultureIgnoreCase).Any())
                 throw new Exception(descriptor.HandlerType.FullName);
 
             CommandAliasses.AddRange(alliasAttribute.Alliases);
@@ -181,10 +187,7 @@ namespace Telegram.Reactive.Providers
                 throw new Exception();
 
             ICustomDescriptorsProvider? provider = (ICustomDescriptorsProvider?)Activator.CreateInstance(handlerType);
-            if (provider == null)
-                throw new Exception();
-
-            return provider.DescribeHandlers();
+            return provider == null ? throw new Exception() : provider.DescribeHandlers();
         }
     }
 }

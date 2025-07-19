@@ -1,4 +1,4 @@
-﻿using Telegram.Reactive.Core.Components.StateKeeping;
+﻿using Telegram.Reactive.StateKeeping.Components;
 
 namespace Telegram.Reactive.StateKeeping
 {
@@ -28,10 +28,10 @@ namespace Telegram.Reactive.StateKeeping
         {
             int index = Array.IndexOf(ArrayStates, currentState);
             if (index == -1)
-                throw new ArgumentException();
+                throw new ArgumentException("Cannot resolve current state");
 
             if (index == 0)
-                throw new IndexOutOfRangeException();
+                throw new IndexOutOfRangeException("This state cannot be moved backward");
 
             return ArrayStates[index - 1];
         }
@@ -48,10 +48,10 @@ namespace Telegram.Reactive.StateKeeping
         {
             int index = Array.IndexOf(ArrayStates, currentState);
             if (index == -1)
-                throw new ArgumentException();
+                throw new ArgumentException("Cannot resolve current state");
 
             if (index == ArrayStates.Length - 1)
-                throw new IndexOutOfRangeException();
+                throw new IndexOutOfRangeException("This state cannot be moved forward");
 
             return ArrayStates[index + 1];
         }

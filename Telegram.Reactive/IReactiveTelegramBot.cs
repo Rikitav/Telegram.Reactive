@@ -1,5 +1,4 @@
-﻿using Telegram.Reactive.Core.Configuration;
-using Telegram.Reactive.Core.Polling;
+﻿using Telegram.Reactive.MadiatorCore;
 
 namespace Telegram.Reactive
 {
@@ -10,18 +9,8 @@ namespace Telegram.Reactive
     public interface IReactiveTelegramBot
     {
         /// <summary>
-        /// Gets the configuration options for the Telegram bot.
-        /// </summary>
-        public TelegramBotOptions Options { get; }
-
-        /// <summary>
         /// Gets the update router for handling incoming updates.
         /// </summary>
         public IUpdateRouter UpdateRouter { get; }
-
-        /// <summary>
-        /// Gets the bot information and metadata.
-        /// </summary>
-        public ITelegramBotInfo BotInfo { get; }
     }
 }

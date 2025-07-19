@@ -1,7 +1,8 @@
 ﻿using Telegram.Bot.Types;
-using Telegram.Reactive.Core.Components.Attributes;
-using Telegram.Reactive.Core.Components.Filters;
-using Telegram.Reactive.Core.Components.StateKeeping;
+using Telegram.Reactive.Annotations.StateKeeping;
+using Telegram.Reactive.Attributes.Components;
+using Telegram.Reactive.Filters.Components;
+using Telegram.Reactive.StateKeeping.Components;
 
 namespace Telegram.Reactive.Attributes
 {

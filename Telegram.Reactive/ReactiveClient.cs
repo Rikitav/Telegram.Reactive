@@ -1,8 +1,7 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Polling;
-using Telegram.Reactive.Core.Configuration;
-using Telegram.Reactive.Core.Polling;
-using Telegram.Reactive.Core.Providers;
+using Telegram.Reactive.Configuration;
+using Telegram.Reactive.MadiatorCore;
 using Telegram.Reactive.Polling;
 using Telegram.Reactive.Providers;
 
@@ -50,8 +49,7 @@ namespace Telegram.Reactive
         {
             Options = new TelegramBotOptions();
             Handlers = new HandlersCollection(default);
-            BotInfo = new TelegramBotInfo();
-            BotInfo.Initialize(this);
+            BotInfo = new TelegramBotInfo(this.GetMe(cancellationToken).Result);
         }
 
         /// <summary>
@@ -65,7 +63,7 @@ namespace Telegram.Reactive
             if (Options.GlobalCancellationToken == CancellationToken.None)
                 Options.GlobalCancellationToken = cancellationToken;
 
-            HandlersProvider handlerProvider = new HandlersProvider(Handlers.Values, Options, BotInfo);
+            HandlersProvider handlerProvider = new HandlersProvider(Handlers, Options, BotInfo);
             AwaitingProvider awaitingProvider = new AwaitingProvider(Options, BotInfo);
 
             updateRouter = new UpdateRouter(handlerProvider, awaitingProvider, Options);

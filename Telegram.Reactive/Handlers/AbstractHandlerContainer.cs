@@ -1,10 +1,9 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Reactive.Core.Collections;
-using Telegram.Reactive.Core.Components.Handlers;
-using Telegram.Reactive.Core.Descriptors;
-using Telegram.Reactive.Core.Providers;
-using Telegram.Reactive.Providers;
+using Telegram.Reactive.Filters.Components;
+using Telegram.Reactive.Handlers.Components;
+using Telegram.Reactive.MadiatorCore;
+using Telegram.Reactive.MadiatorCore.Descriptors;
 
 namespace Telegram.Reactive.Handlers
 {
@@ -15,35 +14,12 @@ namespace Telegram.Reactive.Handlers
     /// <typeparam name="TUpdate">The type of update being handled.</typeparam>
     public class AbstractHandlerContainer<TUpdate> : IAbstractHandlerContainer<TUpdate> where TUpdate : class
     {
-        /// <summary>
-        /// The actual update object of type TUpdate.
-        /// </summary>
         private readonly TUpdate _actualUpdate;
-        
-        /// <summary>
-        /// The original update object.
-        /// </summary>
         private readonly Update _handlingUpdate;
-        
-        /// <summary>
-        /// The Telegram bot client instance.
-        /// </summary>
         private readonly ITelegramBotClient _client;
-        
-        /// <summary>
-        /// Additional data associated with the handler execution.
-        /// </summary>
         private readonly Dictionary<string, object> _extraData;
-        
-        /// <summary>
-        /// The list of completed filters for this execution.
-        /// </summary>
         private readonly CompletedFiltersList _completedFilters;
-        
-        /// <summary>
-        /// The awaiting provider for managing async operations.
-        /// </summary>
-        private readonly AwaitingProvider _awaitingProvider;
+        private readonly IAwaitingProvider _awaitingProvider;
 
         /// <summary>
         /// Gets the actual update object of type TUpdate.
@@ -63,7 +39,7 @@ namespace Telegram.Reactive.Handlers
         public CompletedFiltersList CompletedFilters => _completedFilters;
 
         /// <inheritdoc cref="IHandlerContainer.AwaitingProvider"/>
-        public AwaitingProvider AwaitingProvider => _awaitingProvider;
+        public IAwaitingProvider AwaitingProvider => _awaitingProvider;
 
         /// <inheritdoc/>
         IAwaitingProvider IHandlerContainer.AwaitingProvider => AwaitingProvider;
@@ -73,7 +49,7 @@ namespace Telegram.Reactive.Handlers
         /// </summary>
         /// <param name="awaitingProvider">The awaiting provider for managing async operations.</param>
         /// <param name="handlerInfo">The handler information containing execution context.</param>
-        public AbstractHandlerContainer(AwaitingProvider awaitingProvider, DescribedHandlerInfo handlerInfo)
+        public AbstractHandlerContainer(IAwaitingProvider awaitingProvider, DescribedHandlerInfo handlerInfo)
         {
             _actualUpdate = handlerInfo.HandlingUpdate.GetActualUpdateObject<TUpdate>();
             _handlingUpdate = handlerInfo.HandlingUpdate;

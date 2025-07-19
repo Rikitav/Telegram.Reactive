@@ -1,68 +1,60 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.Metrics;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
-using Telegram.Reactive.Core.Configuration;
-using Telegram.Reactive.Core.Providers;
-using Telegram.Reactive.Hosting.Extensions;
-using Telegram.Reactive.Hosting.Services;
+using Telegram.Reactive.Configuration;
+using Telegram.Reactive.Hosting.Components;
+using Telegram.Reactive.Hosting.Configuration;
+using Telegram.Reactive.Hosting.Providers;
+using Telegram.Reactive.MadiatorCore;
 
+#pragma warning disable IDE0001
 namespace Telegram.Reactive.Hosting
 {
     public class TelegramBotHostBuilder : ITelegramBotHostBuilder
     {
-        private readonly HostApplicationBuilder HostApplicationBuilder;
-        private readonly TelegramBotHostBuilderSettings Settings;
-
-        /// <inheritdoc cref="ICollectingProvider.Handlers"/>
-        public HostHandlersCollection Handlers { get; private set; }
+        private readonly HostApplicationBuilder _innerBuilder;
+        private readonly TelegramBotHostBuilderSettings _settings;
+        private readonly HostHandlersCollection _handlers;
 
         /// <inheritdoc/>
-        public IServiceCollection Services => HostApplicationBuilder.Services;
+        public IHandlersCollection Handlers => _handlers;
 
         /// <inheritdoc/>
-        public IDictionary<object, object> Properties => ((IHostApplicationBuilder)HostApplicationBuilder).Properties;
+        public IServiceCollection Services => _innerBuilder.Services;
 
         /// <inheritdoc/>
-        public IConfigurationManager Configuration => HostApplicationBuilder.Configuration;
+        public IConfigurationManager Configuration => _innerBuilder.Configuration;
 
         /// <inheritdoc/>
-        public IHostEnvironment Environment => HostApplicationBuilder.Environment;
+        public ILoggingBuilder Logging => _innerBuilder.Logging;
 
         /// <inheritdoc/>
-        public ILoggingBuilder Logging => HostApplicationBuilder.Logging;
-
-        /// <inheritdoc/>
-        public IMetricsBuilder Metrics => HostApplicationBuilder.Metrics;
-
-        IHandlersCollection ICollectingProvider.Handlers => Handlers;
+        public IHostEnvironment Environment => _innerBuilder.Environment;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TelegramBotHostBuilder"/> class.
         /// </summary>
-        internal TelegramBotHostBuilder(TelegramBotHostBuilderSettings? settings)
+        internal TelegramBotHostBuilder(TelegramBotHostBuilderSettings? settings = null)
         {
-            // Inner builder
-            Settings = settings ?? new TelegramBotHostBuilderSettings();
-            HostApplicationBuilder = new HostApplicationBuilder(Settings.ToApplicationBuilderSettings());
-            Handlers = new HostHandlersCollection(Services, Settings);
+            _settings = settings ?? new TelegramBotHostBuilderSettings();
+            _innerBuilder = new HostApplicationBuilder(settings?.ToApplicationBuilderSettings());
+            _handlers = new HostHandlersCollection(Services, _settings);
 
             Services.Configure<TelegramBotOptions>(Configuration.GetSection(nameof(TelegramBotOptions)));
             Services.Configure<ReceiverOptions>(Configuration.GetSection(nameof(ReceiverOptions)));
-            Services.Configure(Configuration.GetSection(nameof(TelegramBotClientOptions)), new TelegramBotClientOptionsProxy());
+            Services.Configure<TelegramBotClientOptions>(Configuration.GetSection(nameof(TelegramBotClientOptions)), new TelegramBotClientOptionsProxy());
         }
 
         /// <summary>
         /// Builds the host.
         /// </summary>
-        /// <returns>A custom host instance.</returns>
+        /// <returns></returns>
         public TelegramBotHost Build()
         {
-            foreach (var preBuildRoutine in Handlers.PreBuilderRoutines)
+            foreach (var preBuildRoutine in _handlers.PreBuilderRoutines)
             {
                 try
                 {
@@ -74,12 +66,7 @@ namespace Telegram.Reactive.Hosting
                 }
             }
 
-            return new TelegramBotHost(HostApplicationBuilder, Handlers);
-        }
-
-        public void ConfigureContainer<TContainerBuilder>(IServiceProviderFactory<TContainerBuilder> factory, Action<TContainerBuilder>? configure = null) where TContainerBuilder : notnull
-        {
-            HostApplicationBuilder.ConfigureContainer(factory, configure);
+            return new TelegramBotHost(_innerBuilder, _handlers);
         }
     }
 }
